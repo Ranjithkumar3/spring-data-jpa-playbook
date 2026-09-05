@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: spring-data-jpa-playbook
+  datasource:
+    url: jdbc:postgresql://localhost:5433/jpa_playbook
+    username: jpa_user
+    password: Test@123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
