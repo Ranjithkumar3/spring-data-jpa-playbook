@@ -1,7 +1,9 @@
 package org.rk.spring.data.jpa.playbook.repository;
 
+import jakarta.transaction.Transactional;
 import org.rk.spring.data.jpa.playbook.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +26,9 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query(value = "SELECT * FROM jpa_student s WHERE s.email_address = :emailId", nativeQuery = true)
     Student getStudentByEmailAddressNativeNamedParam(@Param("emailId") String emailId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE jpa_student SET first_name = :firstName WHERE email_address = :emailId", nativeQuery = true)
+    int updateStudentNameByEmaiId(@Param("firstName") String firstName, @Param("emailId") String emailId);
 }
