@@ -1,10 +1,10 @@
 package org.rk.spring.data.jpa.playbook.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Data
@@ -30,4 +30,21 @@ public class Student {
 
     @Embedded
     private Guardian guardian;
+
+    @ManyToMany
+    @JoinTable(
+            name = "student_course_map",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    @ToString.Exclude
+    private List<Course> courses;
+
+    public void addCourse(Course course) {
+        if (this.courses == null) {
+            this.courses = new java.util.ArrayList<>();
+        }
+        this.courses.add(course);
+    }
+
 }
