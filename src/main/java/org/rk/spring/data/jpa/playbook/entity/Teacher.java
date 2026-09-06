@@ -22,10 +22,14 @@ public class Teacher {
 
     private String lastName;
 
-    @OneToMany(mappedBy = "teacher")
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL)
+    // JPA TRAP: 'Course' owns the relationship (holds the @JoinColumn).
+    // If you only add courses to the Teacher's list, Hibernate will insert 'teacher_id' as NULL.
+    // THE FIX: You must explicitly set the teacher on each course (e.g., course.setTeacher(teacher))
+    // to ensure the foreign key is correctly persisted in the database.
     private List<Course> courses;
 
-    // Inside your Teacher class
+    // Fix for the JPA trap
     public void addCourse(Course course) {
         if (this.courses == null) {
             this.courses = new java.util.ArrayList<>();

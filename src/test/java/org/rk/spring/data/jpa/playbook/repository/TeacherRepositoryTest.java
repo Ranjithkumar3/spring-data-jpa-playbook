@@ -21,23 +21,22 @@ class TeacherRepositoryTest {
         List<Course> courses = new ArrayList<>();
 
         Course course1 = Course.builder()
-                .title("DBA")
-                .credit(8)
+                .title("PHP")
+                .credit(9)
                 .build();
 
         Course course2 = Course.builder()
-                .title("SQL")
+                .title("Laravel")
                 .credit(7)
                 .build();
 
-        courses.add(course1);
-        courses.add(course2);
-
         Teacher teacher = Teacher.builder()
-                .firstName("Shabir")
-                .lastName("Dawoodi")
-                .courses(courses)
+                .firstName("Jane")
+                .lastName("Doe")
                 .build();
+
+        teacher.addCourse(course1);
+        teacher.addCourse(course2);
 
         teacherRepository.save(teacher);
     }
