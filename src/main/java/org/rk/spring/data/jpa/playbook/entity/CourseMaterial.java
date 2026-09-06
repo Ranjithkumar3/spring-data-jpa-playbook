@@ -16,7 +16,7 @@ public class CourseMaterial {
     @Column(name = "url")
     private String url;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "course_id", referencedColumnName = "courseId")
     @ToString.Exclude
     private Course course;
