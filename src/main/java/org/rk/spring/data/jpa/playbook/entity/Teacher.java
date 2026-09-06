@@ -1,10 +1,7 @@
 package org.rk.spring.data.jpa.playbook.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -23,6 +20,7 @@ public class Teacher {
     private String lastName;
 
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL)
+    @ToString.Exclude
     // JPA TRAP: 'Course' owns the relationship (holds the @JoinColumn).
     // If you only add courses to the Teacher's list, Hibernate will insert 'teacher_id' as NULL.
     // THE FIX: You must explicitly set the teacher on each course (e.g., course.setTeacher(teacher))
