@@ -170,4 +170,19 @@ public class CoursePerformanceTest {
 //        Course: Statistics taught by Srinivas
 //        --- FETCH COMPLETE ---
     }
+
+    @Test
+    void verifyJoinFetchPerformance() {
+        System.out.println("--- STARTING JPQL JOIN FETCH ---");
+        List<Course> courses = courseRepository.findAllCoursesUsingJoinFetch();
+
+        System.out.println("--- ACCESSING RELATIONSHIPS ---");
+        for (Course course : courses) {
+            if (course.getTeacher() != null) {
+                System.out.println("Course: " + course.getTitle() + " taught by " + course.getTeacher().getFirstName());
+            }
+        }
+        System.out.println("--- FETCH COMPLETE ---");
+    }
+
 }
