@@ -6,11 +6,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface CourseRepository extends JpaRepository<Course, Long> {
+public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecificationExecutor<Course> {
     List<Course> findByTitleContaining(String seq, Pageable pageRequest);
 
     @Override
@@ -92,4 +93,46 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     */
     @Query("SELECT c FROM Course c LEFT JOIN FETCH c.teacher LEFT JOIN FETCH c.courseMaterial")
     List<Course> findAllCoursesUsingJoinFetch();
+
+    /* You need to build a backend search API for a course catalog.
+    The frontend has a search form with two fields: title (optional text search) and credit (optional drop-down filter).
+
+    Without Specifications, you have to write repository methods for every possible combination of inputs.
+    */
+
+    List<Course> findByTitleContaining(String title);
+
+    List<Course> findByCredit(Integer credit);
+
+    List<Course> findByTitleContainingAndCredit(String title, Integer credit);
+
+    /* Imagine if you added just 3 more filters (like teacherId, startDate, status). You would need to write 32 different finder methods! */
+
+    /* The service layer logic might look like */
+    /* You have to write ugly if-else branching logic just to figure out which repository method to call based on what the user sent: */
+    /*
+        public List<Course> searchCourses(String title, Integer credit) {
+            boolean hasTitle = title != null && !title.isBlank();
+            boolean hasCredit = credit != null;
+
+            if (hasTitle && hasCredit) {
+                return courseRepository.findByTitleContainingAndCredit(title, credit);
+            } else if (hasTitle) {
+                return courseRepository.findByTitleContaining(title);
+            } else if (hasCredit) {
+                return courseRepository.findByCredit(credit);
+            } else {
+                return courseRepository.findAll();
+            }
+        }
+    */
+
+    /* Check cleaner implementation alternative using specification in CourseSpecifications */
+    /* Service layer logic using Specification */
+    /*
+        public List<Course> searchCourses(String title, Integer credit) {
+            return courseRepository.findAll(Specification.where(CourseSpecifications.containsTitle(title)).and(CourseSpecifications.hasCredit(credit));
+        }
+     */
+
 }

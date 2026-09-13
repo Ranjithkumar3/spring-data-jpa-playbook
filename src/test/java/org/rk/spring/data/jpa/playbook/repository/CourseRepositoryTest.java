@@ -2,11 +2,13 @@ package org.rk.spring.data.jpa.playbook.repository;
 
 import org.junit.jupiter.api.Test;
 import org.rk.spring.data.jpa.playbook.entity.Course;
+import org.rk.spring.data.jpa.playbook.repository.specification.CourseSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -51,6 +53,14 @@ class CourseRepositoryTest {
 
         List<Course> courses = courseRepository.findByTitleContaining("D", records);
 
+        System.out.println(courses);
+    }
+
+
+    @Test
+    void getCoursesWithTeachersWithLastNameStartingWithS() {
+        Specification<Course> spec = CourseSpecifications.hasTeacherLastNameStartingWith("R");
+        List<Course> courses = courseRepository.findAll(spec);
         System.out.println(courses);
     }
 }
