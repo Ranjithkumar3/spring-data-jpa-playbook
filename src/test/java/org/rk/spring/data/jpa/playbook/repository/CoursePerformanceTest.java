@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.rk.spring.data.jpa.playbook.entity.Course;
 import org.rk.spring.data.jpa.playbook.entity.CourseMaterial;
 import org.rk.spring.data.jpa.playbook.entity.Teacher;
+import org.rk.spring.data.jpa.playbook.repository.projections.CourseOpenInterface;
+import org.rk.spring.data.jpa.playbook.repository.projections.CourseRecordDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -183,6 +185,64 @@ public class CoursePerformanceTest {
             }
         }
         System.out.println("--- FETCH COMPLETE ---");
+    }
+
+    @Test
+    void auditHeavyLoadingEntityProblem() {
+        // --- TEST 0: The Unoptimized Entity Load ---
+        System.out.println("=== EXECUTING COMPLETE ENTITY LOAD ===");
+        // Pulls every column, manages it in heap memory, and triggers relationship joins/queries
+        List<Course> completeEntities = courseRepository.findByCredit(3, Course.class);
+        for (Course course : completeEntities) {
+            // Relying on default entity fields or triggering LAZY proxies
+            String teacherName = (course.getTeacher() != null) ? course.getTeacher().getFirstName() : "No Teacher";
+            System.out.println("Entity: " + course.getTitle() + " by " + teacherName);
+        }
+
+        /* Output:
+            === EXECUTING COMPLETE ENTITY LOAD ===
+            Hibernate: select c1_0.course_id,c1_0.credit,c1_0.teacher_id,c1_0.title from course c1_0 where c1_0.credit=?
+            Hibernate: select cm1_0.course_material_id,cm1_0.course_id,c1_0.course_id,c1_0.credit,t1_0.teacher_id,t1_0.first_name,t1_0.last_name,c1_0.title,cm1_0.url from course_material cm1_0 join course c1_0 on c1_0.course_id=cm1_0.course_id left join teacher t1_0 on t1_0.teacher_id=c1_0.teacher_id where cm1_0.course_id=?
+            Hibernate: select t1_0.teacher_id,t1_0.first_name,t1_0.last_name from teacher t1_0 where t1_0.teacher_id=?
+            Hibernate: select cm1_0.course_material_id,cm1_0.course_id,c1_0.course_id,c1_0.credit,t1_0.teacher_id,t1_0.first_name,t1_0.last_name,c1_0.title,cm1_0.url from course_material cm1_0 join course c1_0 on c1_0.course_id=cm1_0.course_id left join teacher t1_0 on t1_0.teacher_id=c1_0.teacher_id where cm1_0.course_id=?
+
+            Entity: Algebra by Srinivas
+            Entity: Statistics by Srinivas
+        */
+    }
+
+    @Test
+    void auditProjectionSql() {
+        // --- TEST 1: The Optimized Record ---
+        System.out.println("=== EXECUTING RECORD PROJECTION ===");
+        List<CourseRecordDTO> records = courseRepository.findByCredit(3, CourseRecordDTO.class);
+        for (CourseRecordDTO dto : records) {
+            System.out.println("Record: " + dto.title() + " by " + dto.teacherFirstName());
+        }
+
+        // --- TEST 2: The Open Interface (SpEL) ---
+        System.out.println("=== EXECUTING OPEN INTERFACE PROJECTION ===");
+        List<CourseOpenInterface> interfaces = courseRepository.findByCredit(3, CourseOpenInterface.class);
+        for (CourseOpenInterface minterface : interfaces) {
+            System.out.println("Interface Label: " + minterface.getCustomLabel());
+        }
+
+        /* Output
+            === EXECUTING RECORD PROJECTION ===
+            Hibernate: select c1_0.course_id,c1_0.title,t1_0.first_name from course c1_0 left join teacher t1_0 on t1_0.teacher_id=c1_0.teacher_id where c1_0.credit=?
+
+            Record: Algebra by Srinivas
+            Record: Statistics by Srinivas
+
+            === EXECUTING OPEN INTERFACE PROJECTION ===
+            Hibernate: select c1_0.course_id,c1_0.credit,c1_0.teacher_id,c1_0.title from course c1_0 where c1_0.credit=?
+            Hibernate: select cm1_0.course_material_id,cm1_0.course_id,c1_0.course_id,c1_0.credit,t1_0.teacher_id,t1_0.first_name,t1_0.last_name,c1_0.title,cm1_0.url from course_material cm1_0 join course c1_0 on c1_0.course_id=cm1_0.course_id left join teacher t1_0 on t1_0.teacher_id=c1_0.teacher_id where cm1_0.course_id=?
+            Hibernate: select t1_0.teacher_id,t1_0.first_name,t1_0.last_name from teacher t1_0 where t1_0.teacher_id=?
+            Hibernate: select cm1_0.course_material_id,cm1_0.course_id,c1_0.course_id,c1_0.credit,t1_0.teacher_id,t1_0.first_name,t1_0.last_name,c1_0.title,cm1_0.url from course_material cm1_0 join course c1_0 on c1_0.course_id=cm1_0.course_id left join teacher t1_0 on t1_0.teacher_id=c1_0.teacher_id where cm1_0.course_id=?
+
+            Interface Label: Algebra -> Srinivas
+            Interface Label: Statistics -> Srinivas
+         */
     }
 
 }

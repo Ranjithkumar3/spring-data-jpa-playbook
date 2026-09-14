@@ -135,4 +135,7 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
         }
      */
 
+    /* Generic signature for Projections */
+    <T> List<T> findByCredit(Integer credit, Class<T> type);
+
 }
