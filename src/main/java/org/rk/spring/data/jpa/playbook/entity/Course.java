@@ -14,6 +14,9 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long courseId;
 
+    @Version
+    private Integer version;
+
     @Column(name = "title")
     private String title;
 

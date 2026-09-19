@@ -8,6 +8,7 @@ import org.rk.spring.data.jpa.playbook.repository.projections.CourseOpenInterfac
 import org.rk.spring.data.jpa.playbook.repository.projections.CourseRecordDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.List;
 
@@ -244,5 +245,47 @@ public class CoursePerformanceTest {
             Interface Label: Statistics -> Srinivas
          */
     }
+
+    @Test
+    public void testOptimisticLockingConcurrency() {
+        // 1. Arrange: Ensure a course with ID 1 exists in your database
+        // (If your DB resets, insert one first and get its ID)
+        Long targetCourseId = 1L;
+
+        // 2. Act: Simulate User 1 loading the course onto their screen
+        Course courseUser1 = courseRepository.findById(targetCourseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+
+        // 3. Act: Simulate User 2 loading the EXACT SAME course onto their screen a second later
+        Course courseUser2 = courseRepository.findById(targetCourseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+
+        // Verify both users currently hold the exact same version number (e.g., version = 0)
+        System.out.println("User 1 baseline version: " + courseUser1.getVersion());
+        System.out.println("User 2 baseline version: " + courseUser2.getVersion());
+
+        // 4. Act: User 1 edits the title and clicks "Save" first
+        courseUser1.setTitle("Title Updated By User 1");
+        System.out.println("=== USER 1 SAVING ===");
+        courseRepository.saveAndFlush(courseUser1);
+        // This succeeds and bumps the database version to 1!
+
+        // 5. Act: User 2 tries to edit the title and clicks "Save" second
+        // Their local object still thinks the version is 0!
+        courseUser2.setTitle("Title Updated By User 2");
+        System.out.println("=== USER 2 SAVING ===");
+
+        // 6. Assert: Wrap User 2's save in an assertion to prove it crashes the transaction
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.springframework.orm.ObjectOptimisticLockingFailureException.class,
+                () -> {
+                    courseRepository.saveAndFlush(courseUser2);
+                },
+                "Expected ObjectOptimisticLockingFailureException but it did not throw!"
+        );
+
+        System.out.println("Concurrency Protection Verified! Data overwrite blocked successfully.");
+    }
+
 
 }
