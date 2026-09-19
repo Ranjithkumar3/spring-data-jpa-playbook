@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -20,9 +21,13 @@ public class Course {
     private Integer credit;
 
     @OneToOne(mappedBy = "course")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private CourseMaterial courseMaterial;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "teacher_id", referencedColumnName = "teacherId")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Teacher teacher;
 }

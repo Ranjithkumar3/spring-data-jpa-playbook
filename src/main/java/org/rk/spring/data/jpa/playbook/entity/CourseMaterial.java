@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -19,5 +20,6 @@ public class CourseMaterial {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "course_id", referencedColumnName = "courseId")
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Course course;
 }
